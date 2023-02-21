@@ -1,8 +1,9 @@
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE DataKinds, OverloadedStrings #-}
-{-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
 module Main  where
 
 import Language.LSP.Server
@@ -18,6 +19,10 @@ import Data.Char
 import System.FilePath
 import Colog.Core
 import Language.LSP.Logging
+import System.Directory
+import qualified Data.ByteString as BS
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Utf16.Rope as Rope
 
 main :: IO Int
 main = runServer definition
@@ -72,7 +77,7 @@ searchDefinition req callback = do
       root <- unwrap
         "can't get root path"
         =<< getRootPath
-      locs <- resolveLocation (LSP.toNormalizedUri $ LSP.filePathToUri (root </> fp)) pr
+      locs <- resolveLocation  (root </> fp) pr
       callback (Right (makeSumFromLocList locs))
     RelPath fp pr -> do
       origin <- unwrap
@@ -80,7 +85,7 @@ searchDefinition req callback = do
         (LSP.uriToFilePath td)
       locs <-
         resolveLocation
-        (LSP.toNormalizedUri $ LSP.filePathToUri (origin `replaceFileName` (dropDrive fp)))
+         (origin `replaceFileName` (dropDrive fp))
         pr
       callback (Right (makeSumFromLocList locs))
 
@@ -97,20 +102,36 @@ searchDefinition req callback = do
       callback (Left (LSP.ResponseError LSP.RequestFailed reason Nothing))
       liftIO (throwIO (ErrorCall "hopefully unreachable"))
 
-resolveLocation :: LSP.NormalizedUri -> Maybe PropertyReq -> LspM () [LSP.Location]
-resolveLocation nuri = \case
-  Nothing -> pure [ LSP.Location uri nullRange ]
+resolveLocation :: FilePath -> Maybe PropertyReq -> LspM () [LSP.Location]
+resolveLocation fp = \case
+  Nothing -> do
+    fe <- liftIO $ doesFileExist fp
+    if fe then pure defLoc else pure []
   Just req -> do
     file <- getVirtualFile nuri
     case file of
-      Nothing -> pure [ LSP.Location uri nullRange ]
+      Nothing -> do
+        fe <- liftIO $ doesFileExist fp
+        if not fe
+          then pure []
+          else do
+          fc <- liftIO $ BS.readFile fp
+          LSP.VersionedTextDocumentIdentifier _ ver <- getVersionedTextDoc tdi
+          let vf = VirtualFile (fromMaybe 0 ver) 0 (Rope.fromText (T.decodeUtf8 fc))
+          case getMatchingPositions vf req of
+            [] -> pure defLoc
+            ranges -> pure $ map (LSP.Location uri) ranges
+
       Just f -> do -- This path actually doesn't fire at all
         case getMatchingPositions f req of
-          [] -> pure [ LSP.Location uri nullRange ]
+          [] -> pure defLoc
           ranges -> pure $ map (LSP.Location uri) ranges
   where
-    uri = LSP.fromNormalizedUri nuri
+    uri = LSP.filePathToUri fp
+    tdi = LSP.TextDocumentIdentifier uri
+    nuri = LSP.toNormalizedUri uri
     nullRange = LSP.Range (LSP.Position 0 0) (LSP.Position 0 1)
+    defLoc = [ LSP.Location uri nullRange ]
 
 makeSumFromLocList :: [LSP.Location] -> LSP.Location LSP.|? (LSP.List LSP.Location LSP.|? LSP.List LSP.LocationLink)
 makeSumFromLocList [loc] = LSP.InL loc
