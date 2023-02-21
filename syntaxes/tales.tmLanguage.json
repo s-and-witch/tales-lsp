@@ -1,49 +1,49 @@
 {
-	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	"name": "Tales",
-	"patterns": [
-		{
-			"include": "#keywords"
-		},
-		{
-			"include": "#property"
-		},
-		{
-			"include": "#comment"
-		},
-		{
-			"include": "#link"
-		}
-	],
-	"repository": {
-		"keywords": {
-			"patterns": [{
-				"name": "keyword.control",
-				"match": "^>.+$"
-			}]
-		},
-		"property": {
-			"patterns": [
-				{
-					"name": "entity.name.type.anchor",
-					"match": "^(\\s)*[^:#]*?\\S:"
-				}
-			]
-		},
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Tales",
+  "patterns": [
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#property"
+    },
+    {
+      "include": "#comment"
+    },
+    {
+      "include": "#link"
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [{
+        "name": "keyword.control",
+        "match": "^>.+$"
+      }]
+    },
+    "property": {
+      "patterns": [
+        {
+          "name": "entity.name.type.anchor",
+          "match": "^(\\s)*[^:#]*?\\S:"
+        }
+      ]
+    },
     "comment": {
-			"patterns": [
-				{
-					"begin": "#",
-					"beginCaptures": {
-						"0": {
-							"name": "comment"
-						}
-					},
-					"end": "\\n",
-					"name": "comment.line"
-				}
-			]
-		},
+      "patterns": [
+        {
+          "begin": "#",
+          "beginCaptures": {
+            "0": {
+              "name": "comment"
+            }
+          },
+          "end": "\\n",
+          "name": "comment.line"
+        }
+      ]
+    },
     "link": {
       "patterns": [
         {
@@ -59,13 +59,13 @@
           }
         },
         {
-          "match": "(![^!]+\\b)(\\s|$)",
+          "match": "(![\\S]*[^!]\\b)(\\s|$)",
           "captures": {
             "1" : {"name": "markup.underline.link"}
           }
         }
       ]
     }
-	},
-	"scopeName": "source.tales"
+  },
+  "scopeName": "source.tales"
 }
