@@ -38,14 +38,14 @@ definition = ServerDefinition
   , staticHandlers = mconcat
     [ notificationHandler LSP.SInitialized $ \_ -> pure ()
     , requestHandler LSP.STextDocumentDefinition searchDefinition
-    , notificationHandler LSP.STextDocumentDidChange $ \_ -> pure ()
+    , notificationHandler LSP.STextDocumentDidClose $ \_ -> pure ()
     , notificationHandler LSP.STextDocumentDidOpen $ \_ -> pure ()
     ]
   , interpretHandler = \lc -> Iso (runLspT lc) liftIO
   , options = defaultOptions
     { textDocumentSync = Just LSP.TextDocumentSyncOptions
       { LSP._openClose = Just True
-      , LSP._change = Just LSP.TdSyncFull
+      , LSP._change = Nothing
       , LSP._willSave = Nothing
       , LSP._willSaveWaitUntil = Nothing
       , LSP._save = Nothing
@@ -190,6 +190,7 @@ getRequestedPath file pos = T.take (endPath - startPath) . T.drop startPath $ l
     goBack i = goBack (i - 1)
 
 data PropertyReq = None | Steps T.Text [T.Text] PropertyReq | Wildcard PropertyReq
+  deriving (Show)
 
 data PropertyMap = PropertyStep T.Text CodePointPosition [PropertyMap] deriving Show
 
@@ -285,3 +286,4 @@ data Path
   = AbsPath FilePath (Maybe PropertyReq)
   | RelPath FilePath (Maybe PropertyReq)
   | LocalProp PropertyReq
+  deriving (Show)
