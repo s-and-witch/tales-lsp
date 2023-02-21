@@ -18,7 +18,6 @@ import Data.Char
 import System.FilePath
 import Colog.Core
 import Language.LSP.Logging
-import GHC.Stack
 
 main :: IO Int
 main = runServer definition

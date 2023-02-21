@@ -25,7 +25,7 @@
 		"property": {
 			"patterns": [
 				{
-					"name": "meta.type.annotation",
+					"name": "entity.name.type.anchor",
 					"match": "^(\\s)*[^:#]*?\\S:"
 				}
 			]
@@ -47,16 +47,22 @@
     "link": {
       "patterns": [
         {
-          "name": "markup.underline.link",
-          "match": "/\\S+"
+          "match": "(\\s|^)(/\\S+\\b)",
+          "captures": {
+            "2" : { "name": "markup.underline.link"}
+          }
         },
         {
-          "name": "markup.underline.link",
-          "match": "\\./\\S+\\b"
+          "match": "(\\s|^)(\\./\\S+\\b)",
+          "captures": {
+            "2" : { "name": "markup.underline.link"}
+          }
         },
         {
-          "name": "markup.underline.link",
-          "match": "!\\S+\\b"
+          "match": "(![^!]+\\b)(\\s|$)",
+          "captures": {
+            "1" : {"name": "markup.underline.link"}
+          }
         }
       ]
     }
