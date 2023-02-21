@@ -1,0 +1,65 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Tales",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#property"
+		},
+		{
+			"include": "#comment"
+		},
+		{
+			"include": "#link"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control",
+				"match": "^>.+$"
+			}]
+		},
+		"property": {
+			"patterns": [
+				{
+					"name": "meta.type.annotation",
+					"match": "^(\\s)*[^:#]*?\\S:"
+				}
+			]
+		},
+    "comment": {
+			"patterns": [
+				{
+					"begin": "#",
+					"beginCaptures": {
+						"0": {
+							"name": "comment"
+						}
+					},
+					"end": "\\n",
+					"name": "comment.line"
+				}
+			]
+		},
+    "link": {
+      "patterns": [
+        {
+          "name": "markup.underline.link",
+          "match": "/\\S+"
+        },
+        {
+          "name": "markup.underline.link",
+          "match": "\\./\\S+\\b"
+        },
+        {
+          "name": "markup.underline.link",
+          "match": "!\\S+\\b"
+        }
+      ]
+    }
+	},
+	"scopeName": "source.tales"
+}

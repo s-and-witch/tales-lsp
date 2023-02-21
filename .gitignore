@@ -1,0 +1,8 @@
+.direnv
+dist-newstyle
+result
+out
+node_modules
+.vscode-test
+dist
+*.vsix

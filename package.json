@@ -1,0 +1,80 @@
+{
+  "name": "tale-tale",
+  "displayName": "tale-tale",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Player-205/tales-lsp"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension",
+  "contributes": {
+    "configuration": {"type": "object",
+    "title": "Example configuration",
+    "properties": {
+      "languageServerExample.maxNumberOfProblems": {
+        "scope": "resource",
+        "type": "number",
+        "default": 100,
+        "description": "Controls the maximum number of problems produced by the server."
+      },
+      "languageServerExample.trace.server": {
+        "scope": "window",
+        "type": "string",
+        "enum": [
+          "off",
+          "messages",
+          "verbose"
+        ],
+        "default": "off",
+        "description": "Traces the communication between VS Code and the language server."
+      }
+    }},
+    "languages": [
+      {
+        "id": "tales",
+        "aliases": [
+          "Tales",
+          "tales"
+        ],
+        "extensions": [
+          ".tl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tales",
+        "scopeName": "source.tales",
+        "path": "./syntaxes/tales.tmLanguage.json"
+      }
+    ]
+  },
+  "dependencies": {
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.11.19",
+    "@types/vscode": "^1.74.0",
+    "vscode-languageclient": "^8.0.2",
+    "ts-loader": "^9.4.2",
+    "typescript": "^4.9.5",
+    "mocha": "^10.2.0",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
+  },
+  "scripts": {
+    "vscode:prepublish": "webpack --mode production",
+    "webpack":"webpack --mode none",
+    "watch": "webpack --mode development --watch"
+  }
+}
