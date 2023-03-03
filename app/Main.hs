@@ -13,7 +13,6 @@ import Control.Monad.IO.Class
 import Control.Lens hiding (Iso)
 import qualified Language.LSP.Types.Lens as L
 import qualified Data.Text as T
-import Control.Exception
 import Data.Maybe
 import Data.Char
 import System.FilePath
@@ -23,6 +22,7 @@ import System.Directory
 import qualified Data.ByteString as BS
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Utf16.Rope as Rope
+import Control.Monad.Except
 
 main :: IO Int
 main = runServer definition
@@ -57,10 +57,10 @@ searchDefinition
   :: LSP.RequestMessage LSP.TextDocumentDefinition
   -> (Either LSP.ResponseError (LSP.Location LSP.|? (LSP.List LSP.Location LSP.|? LSP.List LSP.LocationLink)) -> LspM () ())
   -> LspM () ()
-searchDefinition req callback = do
+searchDefinition req callback = either id id <$> runExceptT do
   file <- unwrap
     "no such file"
-    =<< getVirtualFile ntd
+    =<< lift (getVirtualFile ntd)
   let fileContent = virtualFileText file
   pos <-
     unwrap
@@ -72,22 +72,22 @@ searchDefinition req callback = do
     (parsePath path)
   case requestedPath of
     LocalProp pr ->
-      callback (Right (makeResponse ntd (getMatchingPositions file pr)))
+      lift $ callback (Right (makeResponse ntd (getMatchingPositions file pr)))
     AbsPath fp pr -> do
       root <- unwrap
         "can't get root path"
-        =<< getRootPath
-      locs <- resolveLocation  (root </> fp) pr
-      callback (Right (makeSumFromLocList locs))
+        =<< lift getRootPath
+      locs <- lift $ resolveLocation  (root </> fp) pr
+      lift $ callback (Right (makeSumFromLocList locs))
     RelPath fp pr -> do
       origin <- unwrap
         "unable to convert uri to file path"
         (LSP.uriToFilePath td)
       locs <-
-        resolveLocation
+        lift $ resolveLocation
          (origin `replaceFileName` (dropDrive fp))
         pr
-      callback (Right (makeSumFromLocList locs))
+      lift $ callback (Right (makeSumFromLocList locs))
 
   where
     searchFile = req ^. L.params
@@ -99,8 +99,8 @@ searchDefinition req callback = do
     unwrap reason Nothing = throwErr reason
 
     throwErr reason = do
-      callback (Left (LSP.ResponseError LSP.RequestFailed reason Nothing))
-      liftIO (throwIO (ErrorCall "hopefully unreachable"))
+      lift $ logger <& reason `WithSeverity` I
+      throwError ()
 
 resolveLocation :: FilePath -> Maybe PropertyReq -> LspM () [LSP.Location]
 resolveLocation fp = \case

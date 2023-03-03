@@ -36,6 +36,7 @@ executable tale-tale
     , text
     , text-rope
     , these
+    , mtl
 
   hs-source-dirs:   app
   default-language: GHC2021
