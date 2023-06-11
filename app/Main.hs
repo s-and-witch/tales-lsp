@@ -36,10 +36,11 @@ definition = ServerDefinition
   , onConfigurationChange = \ _ _ -> Right ()
   , doInitialize = \ lc _ -> pure (Right lc)
   , staticHandlers = mconcat
-    [ notificationHandler LSP.SInitialized $ \_ -> pure ()
+    [ notificationHandler LSP.SInitialized \_ -> pure ()
     , requestHandler LSP.STextDocumentDefinition searchDefinition
-    , notificationHandler LSP.STextDocumentDidClose $ \_ -> pure ()
-    , notificationHandler LSP.STextDocumentDidOpen $ \_ -> pure ()
+    , notificationHandler LSP.STextDocumentDidClose \_ -> pure ()
+    , notificationHandler LSP.STextDocumentDidOpen \_ -> pure ()
+    , notificationHandler LSP.SCancelRequest \_ -> pure ()
     ]
   , interpretHandler = \lc -> Iso (runLspT lc) liftIO
   , options = defaultOptions
