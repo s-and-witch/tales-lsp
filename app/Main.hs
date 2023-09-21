@@ -7,21 +7,22 @@
 module Main  where
 
 import Language.LSP.Server
-import qualified Language.LSP.Types as LSP hiding (TextDocumentSyncClientCapabilities(..))
+import Language.LSP.Protocol.Types qualified as LSP hiding (NotebookDocumentSyncRegistrationOptions(..),NotebookDocumentSyncOptions(..),DidChangeNotebookDocumentParams(..),TextDocumentSyncClientCapabilities(..))
+import Language.LSP.Protocol.Message qualified as LSP
 import Language.LSP.VFS
 import Control.Monad.IO.Class
 import Control.Lens hiding (Iso)
-import qualified Language.LSP.Types.Lens as L
-import qualified Data.Text as T
+import Language.LSP.Protocol.Lens qualified as L
+import Data.Text qualified as T
 import Data.Maybe
 import Data.Char
 import System.FilePath
 import Colog.Core
 import Language.LSP.Logging
 import System.Directory
-import qualified Data.ByteString as BS
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.Utf16.Rope as Rope
+import Data.ByteString qualified as BS
+import Data.Text.Encoding qualified as T
+import Data.Text.Utf16.Rope qualified as Rope
 import Control.Monad.Except
 
 main :: IO Int
@@ -35,29 +36,31 @@ definition = ServerDefinition
   {defaultConfig  = ()
   , onConfigurationChange = \ _ _ -> Right ()
   , doInitialize = \ lc _ -> pure (Right lc)
-  , staticHandlers = mconcat
-    [ notificationHandler LSP.SInitialized \_ -> pure ()
-    , requestHandler LSP.STextDocumentDefinition searchDefinition
-    , notificationHandler LSP.STextDocumentDidClose \_ -> pure ()
-    , notificationHandler LSP.STextDocumentDidOpen \_ -> pure ()
-    , notificationHandler LSP.STextDocumentDidChange \_ -> pure ()
-    , notificationHandler LSP.SCancelRequest \_ -> pure ()
+  , staticHandlers = \_ -> mconcat
+    [ notificationHandler LSP.SMethod_Initialized \_ -> pure ()
+    , requestHandler LSP.SMethod_TextDocumentDefinition searchDefinition
+    , notificationHandler LSP.SMethod_TextDocumentDidClose \_ -> pure ()
+    , notificationHandler LSP.SMethod_TextDocumentDidOpen \_ -> pure ()
+    , notificationHandler LSP.SMethod_TextDocumentDidChange \_ -> pure ()
+    , notificationHandler LSP.SMethod_CancelRequest \_ -> pure ()
     ]
   , interpretHandler = \lc -> Iso (runLspT lc) liftIO
   , options = defaultOptions
-    { textDocumentSync = Just LSP.TextDocumentSyncOptions
+    { optTextDocumentSync = Just LSP.TextDocumentSyncOptions
       { LSP._openClose = Just True
-      , LSP._change = Nothing
+      , LSP._change = Just LSP.TextDocumentSyncKind_Full
+      , LSP._save = Nothing
       , LSP._willSave = Nothing
       , LSP._willSaveWaitUntil = Nothing
-      , LSP._save = Nothing
       }
     }
   }
 
+type SearchResponseSuccess = LSP.Definition LSP.|? ([LSP.DefinitionLink] LSP.|? LSP.Null)
+
 searchDefinition
-  :: LSP.RequestMessage LSP.TextDocumentDefinition
-  -> (Either LSP.ResponseError (LSP.Location LSP.|? (LSP.List LSP.Location LSP.|? LSP.List LSP.LocationLink)) -> LspM () ())
+  :: LSP.TRequestMessage LSP.Method_TextDocumentDefinition
+  -> (Either LSP.ResponseError SearchResponseSuccess -> LspM () ())
   -> LspM () ()
 searchDefinition req callback = either id id <$> runExceptT do
   file <- unwrap
@@ -119,7 +122,7 @@ resolveLocation fp = \case
           else do
           fc <- liftIO $ BS.readFile fp
           LSP.VersionedTextDocumentIdentifier _ ver <- getVersionedTextDoc tdi
-          let vf = VirtualFile (fromMaybe 0 ver) 0 (Rope.fromText (T.decodeUtf8 fc))
+          let vf = VirtualFile ver 0 (Rope.fromText (T.decodeUtf8 fc))
           case getMatchingPositions vf req of
             [] -> pure defLoc
             ranges -> pure $ map (LSP.Location uri) ranges
@@ -135,11 +138,11 @@ resolveLocation fp = \case
     nullRange = LSP.Range (LSP.Position 0 0) (LSP.Position 0 1)
     defLoc = [ LSP.Location uri nullRange ]
 
-makeSumFromLocList :: [LSP.Location] -> LSP.Location LSP.|? (LSP.List LSP.Location LSP.|? LSP.List LSP.LocationLink)
-makeSumFromLocList [loc] = LSP.InL loc
-makeSumFromLocList locs = LSP.InR (LSP.InL . LSP.List $ locs)
+makeSumFromLocList :: [LSP.Location] -> SearchResponseSuccess
+makeSumFromLocList [loc] = LSP.InL (LSP.Definition (LSP.InL loc))
+makeSumFromLocList locs = LSP.InL (LSP.Definition (LSP.InR locs))
 
-makeResponse :: LSP.NormalizedUri -> [LSP.Range] -> LSP.Location LSP.|? (LSP.List LSP.Location LSP.|? LSP.List LSP.LocationLink)
+makeResponse :: LSP.NormalizedUri -> [LSP.Range] -> SearchResponseSuccess
 makeResponse nuri ranges = makeSumFromLocList $ map (LSP.Location uri) ranges
   where
     uri = LSP.fromNormalizedUri nuri
