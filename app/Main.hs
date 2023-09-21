@@ -40,6 +40,7 @@ definition = ServerDefinition
     , requestHandler LSP.STextDocumentDefinition searchDefinition
     , notificationHandler LSP.STextDocumentDidClose \_ -> pure ()
     , notificationHandler LSP.STextDocumentDidOpen \_ -> pure ()
+    , notificationHandler LSP.STextDocumentDidChange \_ -> pure ()
     , notificationHandler LSP.SCancelRequest \_ -> pure ()
     ]
   , interpretHandler = \lc -> Iso (runLspT lc) liftIO
