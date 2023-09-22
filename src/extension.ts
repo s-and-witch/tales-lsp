@@ -20,7 +20,7 @@ export function activate(context: any) {
 	const serverOptions: ServerOptions = {
 		run: { command: "tale-tale", transport: TransportKind.stdio },
 		debug: {
-			command: "tale-tale",
+			command: "tales-lsp",
 			transport: TransportKind.stdio,
 		}
 	};

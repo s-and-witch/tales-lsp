@@ -1,6 +1,7 @@
 {
-  "name": "tale-tale",
-  "displayName": "tale-tale",
+  "name": "tales-lsp",
+  "displayName": "Tales LSP",
+  "publisher": "sand-witch",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -15,7 +16,7 @@
     "url": "https://github.com/Player-205/tales-lsp"
   },
   "activationEvents": [
-    "onStartupFinished"
+    "onLanguage:tales"
   ],
   "main": "./dist/extension",
   "contributes": {

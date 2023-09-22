@@ -19,7 +19,7 @@ extra-doc-files: CHANGELOG.md
 common warnings
   ghc-options: -Wall
 
-executable tale-tale
+executable tales-lsp
   import:           warnings
   main-is:          Main.hs
 

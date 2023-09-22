@@ -1,6 +1,6 @@
 # tales language server
 
-This is language server and vscode extension for very simple human-readable description language with file cross-linking.
+This is a language server and a vscode extension for very simple human-readable description language with file cross-linking.
 
 See `example.tl` for more information about syntax.
 

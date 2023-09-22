@@ -20,8 +20,7 @@
         jailbreakUnbreak = pkg:
           pkgs.haskell.lib.doJailbreak (pkg.overrideAttrs (_: { meta = { }; }));
 
-        # DON'T FORGET TO PUT YOUR PACKAGE NAME HERE, REMOVING `throw`
-        packageName = "tale-tale";
+        packageName = "tales-lsp";
       in {
         packages.${packageName} =
           haskellPackages.callCabal2nix packageName self rec {
@@ -37,6 +36,7 @@
             ghcid
             cabal-install
             yarn
+            vsce
           ];
           inputsFrom = map (__getAttr "env") (__attrValues self.packages.${system});
         };
