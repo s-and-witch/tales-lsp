@@ -3,7 +3,7 @@
   "displayName": "Tales LSP",
   "publisher": "sand-witch",
   "description": "",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -20,6 +20,12 @@
   ],
   "main": "./dist/extension",
   "contributes": {
+    "commands": [
+      {
+        "command": "tales-lsp.recreate-server",
+        "title": "Tales LSP: Recreate server"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Example configuration",
