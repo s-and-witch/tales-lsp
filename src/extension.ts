@@ -12,14 +12,13 @@ import {
 let client: LanguageClient;
 
 function initClient() {
+  const launchOpts = { command: "tales-lsp", transport: TransportKind.stdio };
+
 	// If the extension is launched in debug mode then the debug server options are used
 	// Otherwise the run options are used
 	const serverOptions: ServerOptions = {
-		run: { command: "tale-lsp", transport: TransportKind.stdio },
-		debug: {
-			command: "tales-lsp",
-			transport: TransportKind.stdio,
-		}
+		run: launchOpts,
+		debug: launchOpts
 	};
 
 	// Options to control the language client
